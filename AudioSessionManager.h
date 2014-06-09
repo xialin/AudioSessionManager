@@ -24,8 +24,7 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
-extern NSString *kAudioSessionManagerMode_Record;
-extern NSString *kAudioSessionManagerMode_Playback;
+@protocol AudioSessionManagerDelegate;
 
 extern NSString *kAudioSessionManagerDevice_Headset;
 extern NSString *kAudioSessionManagerDevice_Bluetooth;
@@ -35,16 +34,22 @@ extern NSString *kAudioSessionManagerDevice_Speaker;
 @interface AudioSessionManager : NSObject
 
 /**
- The current audio route as reported by AudioSessionGetProperty(kAudioSessionProperty_AudioRoute).
- Valid values at this time are: 
-    - ReceiverAndMicrophone
-    - SpeakerAndMicrophone
-    - Speaker
-    - HeadsetInOut
-    - HeadsetBT
-    - HeadphonesAndMicrophone
+ The current audio route.
+ 
+ Valid values at this time are:
+ - kAudioSessionManagerDevice_Bluetooth
+ - kAudioSessionManagerDevice_Headset
+ - kAudioSessionManagerDevice_Phone
+ - kAudioSessionManagerDevice_Speaker
  */
-@property (nonatomic, copy, readonly)     NSString        *audioRoute;
+@property (nonatomic, assign)       NSString        *audioRoute;
+
+@property (nonatomic, assign) id<AudioSessionManagerDelegate> delegate;
+
+/**
+ Returns the AudioSessionManager singleton, creating it if it does not already exist.
+ */
++ (AudioSessionManager *)sharedInstance;
 
 /**
  Returns YES if a wired headset is available.
@@ -67,15 +72,6 @@ extern NSString *kAudioSessionManagerDevice_Speaker;
 @property (nonatomic, readonly)     BOOL             speakerDeviceAvailable;
 
 /**
- Returns or sets the current audio device. Valid values at this time are:
-    - kAudioSessionManagerDevice_Bluetooth
-    - kAudioSessionManagerDevice_Headset
-    - kAudioSessionManagerDevice_Phone
-    - kAudioSessionManagerDevice_Speaker
- */
-@property (nonatomic, assign)       NSString        *audioDevice;
-
-/**
  Returns a list of the available audio devices. Valid values at this time are: 
     - kAudioSessionManagerDevice_Bluetooth
     - kAudioSessionManagerDevice_Headset
@@ -85,25 +81,32 @@ extern NSString *kAudioSessionManagerDevice_Speaker;
 @property (nonatomic, readonly)     NSArray         *availableAudioDevices;
 
 /**
- Returns the AudioSessionManager singleton, creating it if it does not already exist.
+ Initialize by detecting all available devices and selecting one based on the following priority:
+ - bluetooth
+ - headset
+ - speaker
  */
-+ (AudioSessionManager *)sharedInstance;
+- (void)start;
+
+- (void)start:(NSString *)audioSessionCategory withMode:(NSString *)audioSessionMode;
 
 /**
  Switch between recording and playback modes. Returns NO if the mode change failed.
 
- @param value must be kAudioSessionManagerMode_Record or kAudioSessionManagerMode_Playback
+ @param value must be AVAudioSessionCategoryPlayAndRecord or AVAudioSessionCategoryPlayback
 */
-- (BOOL)changeMode:(NSString *)value;
+- (BOOL)changeCategory:(NSString *)value;
 
 /**
- Initialize by detecting all available devices and selecting one based on the following priority:
-    - bluetooth
-    - headset
-    - speaker
- 
- @param postNotifications if DevicesAvailableChanged and AudioDeviceChanged notifications should be posted.
+ In case of AudioSession property been interrupted/overridden, refresh to previous setting
  */
-- (void)startAndPostNotifications:(BOOL)postNotifications;
+- (void)refreshAudioSession;
+
+@end
+
+@protocol AudioSessionManagerDelegate <NSObject>
+
+- (void)interruptionBegan;
+- (void)interruptionEnded;
 
 @end
