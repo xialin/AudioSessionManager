@@ -17,16 +17,16 @@
 //
 #import "AudioSessionManager.h"
 
-@interface AudioSessionManager () {	// private
+@interface AudioSessionManager () { // private
 
-	BOOL		 mBluetoothDeviceAvailable;
-	BOOL		 mHeadsetDeviceAvailable;
-	NSArray		*mAvailableAudioDevices;
+    BOOL         mBluetoothDeviceAvailable;
+    BOOL         mHeadsetDeviceAvailable;
+    NSArray     *mAvailableAudioDevices;
 }
 
-@property (nonatomic, assign)		BOOL			 bluetoothDeviceAvailable;
-@property (nonatomic, assign)		BOOL			 headsetDeviceAvailable;
-@property (nonatomic, strong)		NSArray			*availableAudioDevices;
+@property (nonatomic, assign)       BOOL             bluetoothDeviceAvailable;
+@property (nonatomic, assign)       BOOL             headsetDeviceAvailable;
+@property (nonatomic, strong)       NSArray         *availableAudioDevices;
 
 @property (nonatomic, strong)       AVAudioSession  *mAudioSession;
 @property (nonatomic, strong)       NSString        *mCategory;
@@ -77,10 +77,10 @@ return __sharedInstance; \
 SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
 
 - (id)init {
-	if ((self = [super init])) {
+    if ((self = [super init])) {
         _mAudioSession = [AVAudioSession sharedInstance];
-	}
-	return self;
+    }
+    return self;
 }
 
 - (void)dealloc {
@@ -213,7 +213,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
         NSLogDebug(@"===== AudioSession is running/paused ====");
     }
     
-    // start a new audio session. Without activation, the default route will always be (inputs: null, outputs: Speaker)
+    // ===== OPEN a new audio session. Without activation, the default route will always be (inputs: null, outputs: Speaker)
     [_mAudioSession setActive:YES error:nil];
     
     // Open a session and see what our default is...
@@ -240,6 +240,8 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
             }
         }
     }
+    // ===== CLOSE session after device checking
+    [_mAudioSession setActive:NO error:&err];
     
     if (self.headsetDeviceAvailable) {
         NSLogDebug(@"Found Headset");
@@ -256,14 +258,14 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
 
 - (BOOL)configureAudioSessionWithDesiredAudioRoute:(NSString *)desiredAudioRoute {
 
-	NSError *err;
-	
-	// close down our current session...
-	[_mAudioSession setActive:NO error:&err];
-	
+    NSError *err;
+    
+    // close down our current session...
+    [_mAudioSession setActive:NO error:&err];
+    
     if ((_mCategory == AVAudioSessionCategoryPlayAndRecord) && !_mAudioSession.inputAvailable) {
-		NSLogWarn(@"device does not support recording");
-		return NO;
+        NSLogWarn(@"device does not support recording");
+        return NO;
     }
     
     /*
@@ -286,17 +288,17 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
     if (err) {
         NSLogWarn(@"unable to override output: %@", err);
     }
-	
+    
     // Set our session to active...
-	if (![_mAudioSession setActive:YES error:&err]) {
-		NSLogWarn(@"unable to set audio session active: %@", err);
-		return NO;
-	}
-	
-	// Display our current route...
-	NSLogDebug(@"current route: %@", self.audioRoute);
-	
-	return YES;
+    if (![_mAudioSession setActive:YES error:&err]) {
+        NSLogWarn(@"unable to set audio session active: %@", err);
+        return NO;
+    }
+    
+    // Display our current route...
+    NSLogDebug(@"current route: %@", self.audioRoute);
+    
+    return YES;
 }
 
 - (BOOL)updateCategory {
