@@ -105,7 +105,7 @@ extern NSString *kAudioSessionManagerDevice_Speaker;
 @end
 
 @protocol AudioSessionManagerDelegate <NSObject>
-
+@optional
 - (void)interruptionBegan;
 - (void)interruptionEnded;
 
