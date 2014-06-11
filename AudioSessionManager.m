@@ -119,36 +119,9 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(AudioSessionManager);
     return [self updateCategory];
 }
 
-- (void)refreshAudioSession:(BOOL)checkAvailableAudioDevices {
+- (void)refreshAudioSession {
     [self updateCategory];
     [[AVAudioSession sharedInstance] setMode:_mMode error:nil];
-    
-    
-    if (checkAvailableAudioDevices) {
-        // reset
-        self.headsetDeviceAvailable = NO;
-        self.bluetoothDeviceAvailable = NO;
-        
-        // By checking currentRoute, we assume the AudioSession is already active
-        AVAudioSessionRouteDescription *currentRoute = [_mAudioSession currentRoute];
-        for (AVAudioSessionPortDescription *output in currentRoute.outputs) {
-            if ([[output portType] isEqualToString:AVAudioSessionPortHeadphones]) {
-                self.headsetDeviceAvailable = YES;
-            } else if ([self isBluetoothDevice:[output portType]]) {
-                self.bluetoothDeviceAvailable = YES;
-            }
-        }
-        // In case both headphones and bluetooth are connected, detect bluetooth by inputs
-        // Condition: iOS7 and Bluetooth input available
-        if ([_mAudioSession respondsToSelector:@selector(availableInputs)]) {
-            for (AVAudioSessionPortDescription *input in [_mAudioSession availableInputs]){
-                if ([self isBluetoothDevice:[input portType]]){
-                    self.bluetoothDeviceAvailable = YES;
-                    break;
-                }
-            }
-        }
-    }
 }
 
 #pragma mark public properties
