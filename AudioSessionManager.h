@@ -99,8 +99,10 @@ extern NSString *kAudioSessionManagerDevice_Speaker;
 
 /**
  In case of AudioSession property been interrupted/overridden, refresh to previous setting
+ Note: if checkAvailableDevices is set to YES, we assume you have set AudioSession to Active
+ If AudioSession is Inactive, detection for available audio devices may not be accurate.
  */
-- (void)refreshAudioSession;
+- (void)refreshAudioSession:(BOOL)checkAvailableAudioDevices;
 
 @end
 
